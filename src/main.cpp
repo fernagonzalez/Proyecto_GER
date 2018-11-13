@@ -200,7 +200,7 @@ void Actualizacion_Umbral_Maximo_Tension(void)
   }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-float Array_Corriente(void)
+void Array_Corriente(void)
 {
       int i = 0;
       static float  Array_Corriente[10]; // Redeclaracion de la variable, en la columna 108 se encuentraa la primera declaracion
@@ -214,46 +214,48 @@ float Array_Corriente(void)
       }
 
       Serial.println("check 2");
-      return (Array_Corriente);
-  }
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-float Array_Trapecios (float Array_Corriente[10])
-{
+      // Acá empezaba array trapecios pero los unifiqué porque
+      // no sé como integrar ambos, mas que nada no se como retornar el Array_Corriente
       float f_a = 0; float f_b = 0;
       float b_a = 350;   //b-a es dato, es el intervalo entre muestras sucesivas
       // b-a es igual a Periodo_Array_Corriente
-      int i = 0;
 
+      float Array_Integral_Parcial [10];
+      Serial.println("Los valores de los áreas parciales son: "); // borrar despues
       for (i = 0; i < 9; i++)
       {
           f_a = Array_Corriente[i];
           f_b = Array_Corriente[i + 1];
-          Array_Integral_Parcial [i] = b_a * 0.5 * (f_a + f_b); // Tiene 9 elementos de área
-      }
+          Array_Integral_Parcial [i] = {b_a * 0.5 * (f_a + f_b)}; // Tiene 9 elementos de área
 
+          Serial.print(Array_Integral_Parcial [i]); //borar despues
+          Serial.print("uC  "); //borar despues
+          delay(200); //borar despues
+      }
+      Serial.println(" ");//borar despues
+      Serial.println("---------");//borar despues
+      Serial.println("check 2b");//borar despues
       //Acá tenemos el array de trapecios listo, por ende solo resta sumar las areas
       // Eliminar la siguiente impresión en el sketch final
-      Serial.println("Los valores de los áreas parciales son: ");
+      /*Serial.println("Los valores de los áreas parciales son: ");
       for (i = 0; i < 9; i++)
       {
           Serial.print(Array_Integral_Parcial [i]);
           Serial.print("uC  ");
           delay(500);
-      }
-        Serial.println(" ");
-        Serial.println("---------");
-        Serial.println("check 2b");
+      } está en el buvle de arriba, tengo que borrar ambos*/
+
 
       // Área total
-      static float Delta_Q = 0;
+      float Delta_Q = 0;
       for (i = 0; i <= 8; i++)
       {
           Delta_Q += Array_Integral_Parcial[i];
       }
       Delta_Q = Delta_Q / 1000000; //paso de uC a C
       Serial.print("El valor del área total es: ");Serial.print(Delta_Q);Serial.print("C");
-      Serial.println("---------");*/
+      Serial.println("---------");
 
       return Delta_Q;
   }
