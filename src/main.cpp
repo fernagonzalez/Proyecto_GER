@@ -12,6 +12,7 @@ Adafruit_INA219 ina219;
 
 
 // Declaracion de variables globales
+
 //float Array_Corriente[10] = {};
 /*
 float Array_Integral_Parcial[9] = {};
@@ -22,6 +23,8 @@ float Actualizacion_Umbral_Positivo = 0;
 */
 
 float V_bateria = ina219.getBusVoltage_V();
+float SOC;
+float Umbral_Positivo = 12.5;
 /*
 // Actualización del valor máximo de tensión (en caso de ser necesario).
 float Umbral_Positivo = 12.1;
@@ -35,7 +38,9 @@ float SOC_Ultimo;
 // SOC_Inicial();
 // Modo_Carga();
 //   |---Actualizacion_Umbral_Maximo_Tension();
-
+//              |--- Array_Corriente();
+//              |--- Array_Trapecios();
+//              |--- Valor_SOC_Coulumb_Counting();
 // Suma de delays
 // 1000 ms en todas los modos
 
@@ -54,7 +59,7 @@ void loop()
   float Adquisicion_Preliminar_I(); // Va antes que I_Bateria porque se ejecuta primero
   float I_Bateria = Adquisicion_Preliminar_I();
   float SOC_Inicial();
-  float SOC = SOC_Inicial();
+  SOC = SOC_Inicial();
 
   // Imprimo el dato de la tensión, la corriente y el SOC inicial
   Serial.print("V batería: ");
@@ -134,53 +139,124 @@ float SOC_Inicial(void)
 void Modo_Carga (void)
 {
     Serial.println("Calculando SOC");
-    if (V_bateria > Umbral_Positivo)   // Recalibración del estado de carga lleno
+    if (V_bateria  > Umbral_Positivo)   // Recalibración del estado de carga lleno
       {
-      Actualizacion_Umbral_Maximo_Tension();// Salir del bucle
+      void Actualizacion_Umbral_Maximo_Tension();// Salir del bucle
       } else
-      {
-    // Determinacion del SOC con Coulumb Counting
-    Periodo_Array_Corriente_Subrutina = 350;
-      Serial.println("check 1 ");
+            {
+              // Determinacion del SOC con Coulumb Counting
+              Serial.println("check 1 "); // Borrar despues
 
-    Array_Corriente_Subrutina ();
-    // Imprimo el array de corrientes
-    //*****eliminar esta impresion en el scketch final
-    Serial.println("Los valores de las muestras de las corrientes son: ");
-    int i = 0;
+              void Array_Corriente();
+              // Imprimo el array de corrientes
+              //*****eliminar esta impresion en el scketch final
+              /*Serial.println("Los valores de las muestras de las corrientes son: ");
+              int i = 0;
+              for (i = 0; i <= 9; i++)
+              {
+               Serial.print(Array_Corriente[i]);
+               Serial.print("mA  ");
+               delay(100);
+               }
+                Serial.println(" ");
+                Serial.println("---------");
+                                              */
+              //float Array_Trapecios();
+                  /*Serial.println("El valor del área total es: ");
+                    Serial.print(Delta_Q);
+                    Serial.println(" C");
+
+                    Serial.print(" ");
+                    Serial.println("---------");*/
+
+                  /* En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
+                    que representa la cantidad de cargas acumulada en T */
+          float Q_ganado = 0; // No influirá en el SOC final???
+          float Delta_Q = 0;
+          Q_ganado += Delta_Q;
+          float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
+          /* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
+              de la hoja de datos tenemos que la capadidad es 2.6 Ah para una sola bateria,
+              pero como están conectadas en serie, el pack de tres baterias tiene la misma capacidad.
+              Teniendo en cuenta la relación entre amper y coulumbs hacemos: 2.6 Ah = 2.6 (C/s)*3600 s =9360 C
+          */
+
+          float Delta_SOC = 100 * Q_ganado / Q_nominal;
+          SOC += Delta_SOC;
+          //SOC_Ultimo = SOC;
+
+          //Valor_SOC_Coulumb_Counting();
+          }
+
+}
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void Actualizacion_Umbral_Maximo_Tension(void)
+ {
+    static float Actualizacion_Umbral_Positivo = V_bateria - Umbral_Positivo;
+    Umbral_Positivo += Actualizacion_Umbral_Positivo;
+    /* En la página 40 dice que la tension máxima del pack es de 12.9
+    sin embrago adopto 12.5 como valor base, para que se vaya actualizando desde ahí con la variable Actualizacion_Umbral_Positivo*/
+    Serial.print("SOC: "); Serial.print(100); Serial.println("% ");
+    Serial.println("---------"); //Imprimir el SOC en 100 %
+
+    Serial.print("Umbral positivo actualizado: ");Serial.print(Umbral_Positivo);Serial.println("V");
+    Serial.println("---------");
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void Array_Corriente(void)
+{
+      int i = 0;
+      float  Array_Corriente[10]; // Redeclaracion de la variable, en la columna 108 se encuentraa la primera declaracion
+      int Periodo_Array_Corriente = 350;
       for (i = 0; i <= 9; i++)
       {
-       Serial.print(Array_Corriente[i]);
-       Serial.print("mA  ");
-       delay(100);
+        Array_Corriente[i] = ina219.getCurrent_mA();
+        delay(Periodo_Array_Corriente);
+        // El array tarda 3150 ms en formarse con 10 valores
       }
-      Serial.println(" ");
-      Serial.println("---------");
 
-     Array_Trapecios();
-    /*Serial.println("El valor del área total es: ");
+      Serial.println("check 2");
+      return 0;
+  }
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/*float Array_Trapecios (void)
+{
+      float f_a = 0; float f_b = 0;
+      float b_a = Periodo_Array_Corriente;   //b-a es dato, es el intervalo entre muestras sucesivas
+      int i = 0;
+
+      for (i = 0; i < 9; i++)
+      {
+          f_a = Array_Corriente[i];
+          f_b = Array_Corriente[i + 1];
+          Array_Integral_Parcial [i] = b_a * 0.5 * (f_a + f_b); // Tiene 9 elementos de área
+      }
+
+      //Acá tenemos el array de trapecios listo, por ende solo resta sumar las areas
+      // Eliminar la siguiente impresión en el sketch final
+      Serial.println("Los valores de los áreas parciales son: ");
+      for (i = 0; i < 9; i++)
+      {
+          Serial.print(Array_Integral_Parcial [i]);
+          Serial.print("uC  ");
+          delay(500);
+      }
+        Serial.println(" ");
+        Serial.println("---------");
+        Serial.println("check 2b");
+
+      // Área total
+      for (i = 0; i <= 8; i++)
+      {
+          Delta_Q += Array_Integral_Parcial[i];
+      }
+      Delta_Q = Delta_Q / 1000000; //paso de uC a C
       Serial.print(Delta_Q);
-      Serial.println(" C");
+      Serial.print("C  ");
 
-      Serial.print(" ");
-      Serial.println("---------");*/
-
-    /* En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
-      que representa la cantidad de cargas acumulada en T */
-    Q_ganado += Delta_Q;
-
-    float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
-    /* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
-        de la hoja de datos tenemos que la capadidad es 2.6 Ah para una sola bateria,
-        pero como están conectadas en serie, el pack de tres baterias tiene la misma capacidad.
-        Teniendo en cuenta la relación entre amper y coulumbs hacemos: 2.6 Ah = 2.6 (C/s)*3600 s =9360 C
-    */
-
-    float Delta_SOC = 100 * Q_ganado / Q_nominal;
-    SOC += Delta_SOC;
-    SOC_Ultimo = SOC;
-
-    Valor_SOC_Coulumb_Counting();
-    }
-  return 0;
-}
+      return Delta_Q;
+  }*/
