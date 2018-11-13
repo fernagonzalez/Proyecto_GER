@@ -25,6 +25,7 @@ float Actualizacion_Umbral_Positivo = 0;
 float V_bateria = ina219.getBusVoltage_V();
 float SOC;
 float Umbral_Positivo = 12.5;
+float Delta_Q = 0;
 /*
 // Actualización del valor máximo de tensión (en caso de ser necesario).
 float Umbral_Positivo = 12.1;
@@ -161,18 +162,11 @@ void Modo_Carga (void)
                 Serial.println(" ");
                 Serial.println("---------");
                                               */
-              //float Array_Trapecios();
-                  /*Serial.println("El valor del área total es: ");
-                    Serial.print(Delta_Q);
-                    Serial.println(" C");
-
-                    Serial.print(" ");
-                    Serial.println("---------");*/
-
-                  /* En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
-                    que representa la cantidad de cargas acumulada en T */
+              float Array_Trapecios();
+              /*En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
+              que representa la cantidad de cargas acumulada en T */
           float Q_ganado = 0; // No influirá en el SOC final???
-          float Delta_Q = 0;
+          //float Delta_Q = 0;
           Q_ganado += Delta_Q;
           float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
           /* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
@@ -206,11 +200,12 @@ void Actualizacion_Umbral_Maximo_Tension(void)
   }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void Array_Corriente(void)
+float Array_Corriente(void)
 {
       int i = 0;
-      float  Array_Corriente[10]; // Redeclaracion de la variable, en la columna 108 se encuentraa la primera declaracion
-      int Periodo_Array_Corriente = 350;
+      static float  Array_Corriente[10]; // Redeclaracion de la variable, en la columna 108 se encuentraa la primera declaracion
+      static int Periodo_Array_Corriente;
+      Periodo_Array_Corriente = 350;
       for (i = 0; i <= 9; i++)
       {
         Array_Corriente[i] = ina219.getCurrent_mA();
@@ -219,14 +214,15 @@ void Array_Corriente(void)
       }
 
       Serial.println("check 2");
-      return 0;
+      return (Array_Corriente);
   }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-/*float Array_Trapecios (void)
+float Array_Trapecios (float Array_Corriente[10])
 {
       float f_a = 0; float f_b = 0;
-      float b_a = Periodo_Array_Corriente;   //b-a es dato, es el intervalo entre muestras sucesivas
+      float b_a = 350;   //b-a es dato, es el intervalo entre muestras sucesivas
+      // b-a es igual a Periodo_Array_Corriente
       int i = 0;
 
       for (i = 0; i < 9; i++)
@@ -250,13 +246,14 @@ void Array_Corriente(void)
         Serial.println("check 2b");
 
       // Área total
+      static float Delta_Q = 0;
       for (i = 0; i <= 8; i++)
       {
           Delta_Q += Array_Integral_Parcial[i];
       }
       Delta_Q = Delta_Q / 1000000; //paso de uC a C
-      Serial.print(Delta_Q);
-      Serial.print("C  ");
+      Serial.print("El valor del área total es: ");Serial.print(Delta_Q);Serial.print("C");
+      Serial.println("---------");*/
 
       return Delta_Q;
-  }*/
+  }
