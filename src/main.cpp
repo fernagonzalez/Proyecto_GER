@@ -148,7 +148,7 @@ void Modo_Carga (void)
               // Determinacion del SOC con Coulumb Counting
               Serial.println("check 1 "); // Borrar despues
 
-              void Array_Corriente();
+              float Array_Corriente();
               // Imprimo el array de corrientes
               //*****eliminar esta impresion en el scketch final
               /*Serial.println("Los valores de las muestras de las corrientes son: ");
@@ -162,7 +162,7 @@ void Modo_Carga (void)
                 Serial.println(" ");
                 Serial.println("---------");
                                               */
-              float Array_Trapecios();
+              
               /*En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
               que representa la cantidad de cargas acumulada en T */
           float Q_ganado = 0; // No influirá en el SOC final???
@@ -200,7 +200,7 @@ void Actualizacion_Umbral_Maximo_Tension(void)
   }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void Array_Corriente(void)
+float Array_Corriente(void)
 {
       int i = 0;
       static float  Array_Corriente[10]; // Redeclaracion de la variable, en la columna 108 se encuentraa la primera declaracion
