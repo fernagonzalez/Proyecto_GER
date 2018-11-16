@@ -40,7 +40,6 @@ float SOC_Ultimo;
 // Modo_Carga();
 //   |---Actualizacion_Umbral_Maximo_Tension();
 //              |--- Array_Corriente();
-//              |--- Array_Trapecios();
 //              |--- Valor_SOC_Coulumb_Counting();
 // Suma de delays
 // 1000 ms en todas los modos
@@ -162,7 +161,7 @@ void Modo_Carga (void)
                 Serial.println(" ");
                 Serial.println("---------");
                                               */
-              
+
               /*En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
               que representa la cantidad de cargas acumulada en T */
           float Q_ganado = 0; // No influirá en el SOC final???
