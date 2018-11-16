@@ -72,7 +72,7 @@ void loop()
   Serial.print(SOC);  Serial.println("%");
   Serial.println("---------");
 
-  //888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+  //8888888888888888888888888888888888888888888888888888888888888888888888888888
   // Condicionales para determinar modos (carga, descarga, auto-descarga)
   if (I_Bateria > -2 && I_Bateria < 2)
   { Serial.println("Modo: Auto-descarga");
@@ -84,6 +84,9 @@ void loop()
   { Serial.println("Modo: Descarga");
     Serial.println("---------");
     delay(1000);
+
+    void Modo_Descarga();
+
   }
 
   if (I_Bateria > 2)
@@ -95,6 +98,7 @@ void loop()
   }
 }
 
+//888888888888888888888888888888888888888888888888888888888888888888888888888888
 //888888888888888888888888888888888888888888888888888888888888888888888888888888
 // Declaracion de funciones
 
@@ -178,7 +182,7 @@ void Modo_Carga (void)
           SOC += Delta_SOC;
           //SOC_Ultimo = SOC;
 
-          //Valor_SOC_Coulumb_Counting();
+          float Valor_SOC_Coulumb_Counting();
           }
 
 }
@@ -258,3 +262,25 @@ float Array_Corriente(void)
 
       return Delta_Q;
   }
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+float Valor_SOC_Coulumb_Counting(void)
+{
+  // 12.1 hacer variable Tension_Maxima_Nominal
+  if (SOC > 100 && V_bateria > Umbral_Positivo)
+  {
+    void Actualizacion_Umbral_Maximo_Tension();
+  } else{
+    Serial.print("SOC: ");Serial.print(SOC); Serial.println("% ");
+    Serial.print(" "); Serial.println("---------");
+    }
+}
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void Modo_Descarga(void)
+{
+
+}
