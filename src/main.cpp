@@ -148,6 +148,9 @@ void Modo_Carga (void)
       void Actualizacion_Umbral_Maximo_Tension();// Salir del bucle
       } else
             {
+              float Q_ganado = 0; // Se inicializa en cero cuando el programa
+              // entra en modo Carga.
+              
               // Determinacion del SOC con Coulumb Counting
               Serial.println("check 1 "); // Borrar despues
 
@@ -168,15 +171,15 @@ void Modo_Carga (void)
 
               /*En este modo el contador de coulumbs se presenta por Q_ganado, expresado en la siguite fórmula
               que representa la cantidad de cargas acumulada en T */
-          float Q_ganado = 0; // No influirá en el SOC final???
-          //float Delta_Q = 0;
-          Q_ganado += Delta_Q;
-          float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
-          /* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
-              de la hoja de datos tenemos que la capadidad es 2.6 Ah para una sola bateria,
-              pero como están conectadas en serie, el pack de tres baterias tiene la misma capacidad.
-              Teniendo en cuenta la relación entre amper y coulumbs hacemos: 2.6 Ah = 2.6 (C/s)*3600 s =9360 C
-          */
+
+
+              Q_ganado += Delta_Q;
+              float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
+              /* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
+                  de la hoja de datos tenemos que la capadidad es 2.6 Ah para una sola bateria,
+                  pero como están conectadas en serie, el pack de tres baterias tiene la misma capacidad.
+                  Teniendo en cuenta la relación entre amper y coulumbs hacemos: 2.6 Ah = 2.6 (C/s)*3600 s =9360 C
+              */
 
           float Delta_SOC = 100 * Q_ganado / Q_nominal;
           SOC += Delta_SOC;
