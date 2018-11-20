@@ -39,7 +39,7 @@ float SOC_Ultimo;
 void setup(){
   Serial.begin(9600);
   ina219.begin();
-  //uint32_t currentFrequency;
+
             }
 
 void loop() {
@@ -60,10 +60,6 @@ void loop() {
   Serial.print("La corriente en la batería es: ");
   Serial.print(I_Bateria);  Serial.print("mA  ");  Serial.println(" ");
   Serial.println("---------");
-
-
-  // Estimación inicial del SOC
-  //SOC = SOC_Inicial();
 
   //888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
@@ -89,8 +85,6 @@ void loop() {
     Serial.println("Modo: Carga");
     Serial.println("---------");
     delay(1000);
-
-    //Modo_Carga();
 
   }
 }
