@@ -26,6 +26,14 @@ float V_bateria = ina219.getBusVoltage_V();
 float SOC;
 float Umbral_Positivo = 12.5;
 float Delta_Q = 0;
+float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
+/* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
+    de la hoja de datos tenemos que la capadidad es 2.6 Ah para una sola bateria,
+    pero como están conectadas en serie, el pack de tres baterias tiene la misma capacidad.
+    Teniendo en cuenta la relación entre amper y coulumbs hacemos: 2.6 Ah = 2.6 (C/s)*3600 s =9360 C
+*/
+
+
 /*
 // Actualización del valor máximo de tensión (en caso de ser necesario).
 float Umbral_Positivo = 12.1;
@@ -39,8 +47,10 @@ float SOC_Ultimo;
 // SOC_Inicial();
 // Modo_Carga();
 //   |---Actualizacion_Umbral_Maximo_Tension();
-//              |--- Array_Corriente();
+//              |--- Array_Corriente(); Lo cambié a Delta_Q porque eso retorna
 //              |--- Valor_SOC_Coulumb_Counting();
+// Modo_Descarga();
+
 // Suma de delays
 // 1000 ms en todas los modos
 
@@ -58,6 +68,7 @@ void loop()
   // Declaracion de variables locales
   float Adquisicion_Preliminar_I(); // Va antes que I_Bateria porque se ejecuta primero
   float I_Bateria = Adquisicion_Preliminar_I();
+
   float SOC_Inicial();
   SOC = SOC_Inicial();
 
@@ -148,13 +159,15 @@ void Modo_Carga (void)
       void Actualizacion_Umbral_Maximo_Tension();// Salir del bucle
       } else
             {
-              float Q_ganado = 0; // Se inicializa en cero cuando el programa
-              // entra en modo Carga.
-              
+              float Q_ganado = 0;
+              // Cada vez que el programa entra en el modo carga, inicializará en cero la carga perdida
+
               // Determinacion del SOC con Coulumb Counting
               Serial.println("check 1 "); // Borrar despues
 
-              float Array_Corriente();
+              float Delta_Q_Subrutina();
+              float Delta_Q1 = Delta_Q_Subrutina();
+
               // Imprimo el array de corrientes
               //*****eliminar esta impresion en el scketch final
               /*Serial.println("Los valores de las muestras de las corrientes son: ");
@@ -174,19 +187,13 @@ void Modo_Carga (void)
 
 
               Q_ganado += Delta_Q;
-              float Q_nominal = 9360; //Capacidad nominal (en Coulumb)
-              /* La capacidad nominal de la batería se calcula teniendo en cuenta la capacidad nominal en mAh,
-                  de la hoja de datos tenemos que la capadidad es 2.6 Ah para una sola bateria,
-                  pero como están conectadas en serie, el pack de tres baterias tiene la misma capacidad.
-                  Teniendo en cuenta la relación entre amper y coulumbs hacemos: 2.6 Ah = 2.6 (C/s)*3600 s =9360 C
-              */
 
           float Delta_SOC = 100 * Q_ganado / Q_nominal;
           SOC += Delta_SOC;
           //SOC_Ultimo = SOC;
 
           float Valor_SOC_Coulumb_Counting();
-          }
+        }
 
 }
 
@@ -206,7 +213,7 @@ void Actualizacion_Umbral_Maximo_Tension(void)
   }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-float Array_Corriente(void)
+float Delta_Q_Subrutina(void)
 {
       int i = 0;
       static float  Array_Corriente[10]; // Redeclaracion de la variable, en la columna 108 se encuentraa la primera declaracion
@@ -285,5 +292,21 @@ float Valor_SOC_Coulumb_Counting(void)
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void Modo_Descarga(void)
 {
+  float Q_perdido = 0;
+  // Cada vez que el programa entra en el modo descarga, inicializará en cero la carga perdida
+
+  float Delta_DOD = 0; // Delta de Profundidad de descarga
+  float DOD = 0; // Profundidad de descarga
+
+  float Delta_Q = Delta_Q_Subrutina();
+  Q_perdido += Delta_Q;
+
+  Delta_DOD = (Q_perdido/Q_nominal)*100;
+  DOD += Delta_DOD;
+
+// Acá tiene que ir una subrutina parecida a Valor_SOC_Coulumb_Counting pero
+// para el DOD
+// Posteriormente trabajar con ficheros .h porque son muchas subrutinas ya y el código
+
 
 }
